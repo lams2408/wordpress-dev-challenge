@@ -1,128 +1,60 @@
 <?php
 
-/**
- *
- * The plugin bootstrap file
- *
- * This file is responsible for starting the plugin using the main plugin class file.
- *
- * @since 0.0.1
- * @package Plugin_Name
- *
- * @wordpress-plugin
- * Plugin Name:     Plugin Name
- * Description:     This is a short description of what the plugin does. It's displayed in the WordPress admin area.
- * Version:         0.0.1
- * Author:          Your Name
- * Author URI:      https://www.example.com
- * License:         GPL-2.0+
- * License URI:     http://www.gnu.org/licenses/gpl-2.0.txt
- * Text Domain:     plugin-name
- * Domain Path:     /lang
- */
+/*
+Plugin Name: My cictation shortcode
+Plugin URL: https://www.mycitation-shorcode.com
+Description: This plugin will allow you to generate quotes from your authors and call them through shortcode
+Version: 1.0
+Author: Luis Angel Martinez
+Author URL: https://www.mycitation-shorcode2.com
+license: GPI v2
+*/
 
-if ( ! defined( 'ABSPATH' ) ) {
-	die( 'Direct access not permitted.' );
+/*Add Metabox for Cication*/ 
+function my_citation() { 
+    add_meta_box( 'my_citation','Citation','the_citation','post','normal','high' );  
 }
 
-if ( ! class_exists( 'plugin_name' ) ) {
+/*Add Editor, Show citation in Editor*/
 
-	/*
-	 * main plugin_name class
-	 *
-	 * @class plugin_name
-	 * @since 0.0.1
-	 */
-	class plugin_name {
+function the_citation() {
+	global $post;
+	$mycitation_get  = get_post_meta($post->ID, 'citation', true);
+	wp_editor( $mycitation_get, 'citation', array() );	
+}
 
-		/*
-		 * plugin_name plugin version
-		 *
-		 * @var string
-		 */
-		public $version = '4.7.5';
+/*Save Citation in Database*/
 
-		/**
-		 * The single instance of the class.
-		 *
-		 * @var plugin_name
-		 * @since 0.0.1
-		 */
-		protected static $instance = null;
-
-		/**
-		 * Main plugin_name instance.
-		 *
-		 * @since 0.0.1
-		 * @static
-		 * @return plugin_name - main instance.
-		 */
-		public static function instance() {
-			if ( is_null( self::$instance ) ) {
-				self::$instance = new self();
-			}
-			return self::$instance;
-		}
-
-		/**
-		 * plugin_name class constructor.
-		 */
-		public function __construct() {
-			$this->load_plugin_textdomain();
-			$this->define_constants();
-			$this->includes();
-			$this->define_actions();
-		}
-
-		public function load_plugin_textdomain() {
-			load_plugin_textdomain( 'plugin-name', false, basename( dirname( __FILE__ ) ) . '/lang/' );
-		}
-
-		/**
-		 * Include required core files
-		 */
-		public function includes() {
-            // Example
-			require_once __DIR__ . '/includes/loader.php';
-
-			// Load custom functions and hooks
-			require_once __DIR__ . '/includes/includes.php';
-		}
-
-		/**
-		 * Get the plugin path.
-		 *
-		 * @return string
-		 */
-		public function plugin_path() {
-			return untrailingslashit( plugin_dir_path( __FILE__ ) );
-		}
+function save_mycitation() {
+    global $wpdb, $post;
+    if (!$post_id) $post_id = $_POST['post_ID'];
+    if (!$post_id) return $post;
+    $price= $_POST['citation'];
+    update_post_meta($post_id, 'citation', $price);
+	
+}
+add_action( 'add_meta_boxes', 'my_citation' );                                  
+add_action('save_post', 'save_mycitation');
+add_action('publish_post', 'save_mycitation');
 
 
-		/**
-		 * Define plugin_name constants
-		 */
-		private function define_constants() {
-			define( 'PLUGIN_NAME_PLUGIN_FILE', __FILE__ );
-			define( 'PLUGIN_NAME_PLUGIN_BASENAME', plugin_basename( __FILE__ ) );
-			define( 'PLUGIN_NAME_VERSION', $this->version );
-			define( 'PLUGIN_NAME_PATH', $this->plugin_path() );
-		}
+/*Shortcode to generate citations*/
 
-		/**
-		 * Define plugin_name actions
-		 */
-		public function define_actions() {
-			//
-		}
-
-		/**
-		 * Define plugin_name menus
-		 */
-		public function define_menus() {
-            //
-		}
+function return_citation($atts){
+	
+    global $post;
+    ob_start();
+	$the_post = get_post_meta($post->ID, 'citation', true);
+    	return $the_post;
+	
+		$atts = shortcode_atts( array(
+'post_id' => "",), $atts );
+	
+	$args = array(
+			'post_type' => 'post',
+			'citation' => $atts['post_ID']
+				);
 	}
+add_shortcode('mc-citacion', 'return_citation'); 
 
-	$plugin_name = new plugin_name();
-}
+?>
